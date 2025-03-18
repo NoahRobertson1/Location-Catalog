@@ -10,14 +10,21 @@ function Item({info}) {
     const [description, setDescription] = useState(info.description);
   
     const handleSave = () => {
+      if(name == "" || id == "" || !(typeof id === 'number')) {
+        alert("Ensure all text is filled out properly");
+        setId(id_copy);
+        return;
+      }
         setIsEditing(false);
         console.log('Saved:', { name, id, description });
+        
         const obj = {
             id_copy,
             name, 
             id, 
             description
         }
+
         axios.post("http://localhost:5050/save", obj)
         .then(() => console.log("posted data"))
         .catch(err => {

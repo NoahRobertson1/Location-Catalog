@@ -6,6 +6,7 @@ app.use(express.json())
 const mysql = require('mysql2/promise')
 const dotenv = require('dotenv')
 dotenv.config()
+const axios = require("axios");
 
 
 const pool = mysql.createPool({
@@ -31,6 +32,36 @@ app.get("/employees", async (req, res) => {
       }
 });
 
+app.get("/search:name", async (req, res) => {
+  const name = req.params.name;
+  try {
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/place/findplacefromtext/json',
+      {
+        params: {
+            input: name,
+            inputtype: "textquery",
+            fields: "name,formatted_address,geometry",
+            key: GOOGLE_MAPS_API_KEY,
+        },
+    }
+    );
+    const place = response.data.candidates[0];
+        if (!place) {
+            return res.status(404).json({ error: "Place not found" });
+        }
+
+        res.json({
+            name: place.name,
+            address: place.formatted_address,
+            location: place.geometry.location,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+);
 
 app.post("/save", async (req, res) => {
   console.log("Received POST request:", req.body);
